@@ -37,7 +37,7 @@ def check_lecture_of_teacher(timetable_data, teacher, time_slot, day_of_week): #
                 and timetable_data[group][day_of_week][(time_slot % 10) + 1][2] == 1 \
                 or timetable_data[group][day_of_week][(time_slot % 10) - 1][3] == teacher \
                 and timetable_data[group][day_of_week][(time_slot % 10) - 1][2] == 1 \
-                and timetable_data[group][day_of_week][(time_slot % 10)][3] != teacher:
+                and timetable_data[group][day_of_week][(time_slot % 10)][3] == teacher:
             res = 1
 
     return res
