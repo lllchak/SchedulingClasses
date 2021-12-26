@@ -1,3 +1,4 @@
 *.pyc
 /additional
 /data
+/.idea/codeStyles
