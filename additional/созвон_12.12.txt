@@ -1,0 +1,149 @@
+from data import sendRoomsData, sendTimetableData
+
+WINDOWS_VALUE = 2; CORPUS_VALUE = 1 # веса доп условий, по которым проводится подсчет качества постановок
+
+
+# дальше будет работать неверно, так как у препода занятие может быть и в другой группе
+def windows_check(timetable_data, prepod, time, day_of_week): # проверка окон у преподов
+	res = 0
+	for group in timetable_data.keys():
+		if (timetable_data[group][day_of_week][(time % 10)+1][2] == prepod \
+		        or timetable_data[group][day_of_week][(time % 10)-1][2] == prepod) \
+				and timetable_data[group][day_of_week][(time % 10)][2] != prepod:
+			res = 1
+	return res
+
+
+def corpus_check(timetable_data, room, time, group, day_of_week): # проверка на наличие переходов между корпусами в перерыве
+	if (timetable_data[group][day_of_week][(time % 10)+1][5]) % 10 == room % 10 \
+			or (timetable_data[group][day_of_week][(time % 10)-1][5]) % 10 == room % 10:
+		return 1
+	else:
+		return 0
+
+
+def dict_generator(available_time, requirement):
+	rooms_data = sendRoomsData()
+	d = {} # d - словарь мэтчей аудиторий и времени
+
+	for time in available_time:
+		d[time] = []
+
+	for req in rooms_data.keys():
+		if req == requirement:
+			for time_slot in d.keys():
+				time = time_slot
+				d[time_slot].extend(rooms_data[req][time])
+
+	return d
+
+
+def quality_check(time_rooms_match, timetable_data, prepod, group):
+	max_quality = -1; available_time_room = []
+	# полный перебор на неделю по всем возможным парам время - аудитория
+	for day_of_week in timetable_data[group].keys():
+		for time in time_rooms_match.keys():
+			for room in time_rooms_match[time]:
+				# вычисление качества
+				quality = WINDOWS_VALUE * windows_check(timetable_data, prepod, time, day_of_week) \
+				          + CORPUS_VALUE * corpus_check(timetable_data, room, time, group, day_of_week)
+				# определение максимального качества
+				if quality > max_quality:
+					max_quality = quality
+					available_time_room = [time, room]
+	# возвращает время и место при которых качество максимально
+	return available_time_room
+
+
+def lesson_filler(timetable_data, lesson, prepod, group, available_time, requirement):
+	time_rooms_match = dict_generator(available_time, requirement)
+	# записываем в переменную результат работы функции поиска лучшего варианта - пары - время, аудитория
+	max_quality_values = quality_check(time_rooms_match, timetable_data, prepod, group)
+	if max_quality_values:
+		# перезаписываем вместо пустых значений расписания значения группы, занятия, преподы и требования
+		# перевожу в строку значение временного слота, беру первое значение от строки и потом опять в инт
+		timetable_data[group][max_quality_values[0] // 10][max_quality_values[0] % 10][:4] = lesson[:4]
+		# перезаписываем вместо пустого значения аудитории значения лучшей аудитории
+		# перевожу в строку значение временного слота, беру первое значение от строки и потом опять в инт
+		timetable_data[group][max_quality_values[0] // 10][max_quality_values[0] % 10][-1] = max_quality_values[1]
+		return timetable_data
+	return timetable_data
+
+
+def output(lesson, prepod, group, timetable_data, requirement, available_time): # вывод готового дня
+	for day, value in lesson_filler(timetable_data, lesson, prepod, group, available_time, requirement)[group].items():
+		print(f'День {day}:')
+		print('-'*20)
+		for num_lesson in value:
+			print(num_lesson, sep=' ')
+
+
+# подсчет кол-ва пар поставленных в конкретный день
+def count_lessons(timetable_data, group):
+	count = 0; count_arr = []
+	for day_of_week in timetable_data[group].values():
+		for i in range(1, len(day_of_week)-1):
+			if day_of_week[i][5] != 0:
+				count += 1
+		count_arr.append(count)
+		count = 0
+	return count_arr
+
+
+# проверка жестких ограничений
+def checker(timetable_data, available_time, group):
+	for day_of_week in timetable_data[group].values():
+		for i in range(1, len(day_of_week) - 1):
+			if (day_of_week[i][5] == 0 and day_of_week[i][4] != 0) and (day_of_week[i - 1][5] != 0 or day_of_week[i + 1][5] != 0) \
+					and count_lessons(timetable_data, group)[(day_of_week[1][4] // 10)-1] < 4:
+				available_time.append(day_of_week[i][4])
+
+
+def data_preprocessing():
+	lesson = [1, 2, 3, 4, 0.7]
+	prepod = lesson[2]; group = lesson[0]
+	timetable_data = {
+		1: {
+			1: [[0, 0, 0, 0, 0, 0],
+			    [1, 1, 1, 1, 11, 1],
+			    [1, 0, 0, 0, 12, 0],
+			    [1, 1, 1, 1, 13, 1],
+			    [1, 0, 0, 0, 14, 0],
+			    [1, 0, 0, 0, 15, 0],
+			    [1, 0, 0, 0, 16, 0],
+			    [0, 0, 0, 0, 0, 0]]
+		},
+		2: {
+			1: [[0, 0, 0, 0, 0, 0],
+			    [2, 0, 0, 0, 11, 0],
+			    [2, 0, 0, 0, 12, 0],
+			    [2, 1, 3, 1, 13, 1],
+			    [2, 1, 3, 1, 14, 5],
+			    [2, 0, 0, 0, 15, 0],
+			    [2, 0, 0, 0, 16, 0],
+			    [0, 0, 0, 0, 0, 0]]
+		}
+	}
+	requirement = lesson[3]
+	available_time = []
+	checker(timetable_data, available_time, group)
+
+	return [lesson, prepod, group, timetable_data, requirement, available_time]
+
+
+def main():
+	preprocessed_data = data_preprocessing()
+	time_rooms_match = dict_generator(preprocessed_data[5], preprocessed_data[4])
+	print('Лучшие время и аудитория: {}'.format(quality_check(time_rooms_match, preprocessed_data[3], preprocessed_data[1], preprocessed_data[2])))
+	print('-' * 10)
+	output(preprocessed_data[0], preprocessed_data[1], preprocessed_data[2], preprocessed_data[3], preprocessed_data[4], preprocessed_data[5])
+	print(dict_generator(preprocessed_data[-1], preprocessed_data[-2]))
+
+
+if __name__ == '__main__':
+	main()
+
+
+# ограничение на минимальное кол-во пар в дне пока непонятно как реализовать, так что отложим до лучших времен
+# понять как работает проверка окон, основываясь на нормальную модельку
+# или пробовать ставить несколько занятий в расписание
