@@ -194,7 +194,7 @@ def data_preprocessing(lesson, timetable_data):
 
 
 def main():
-	excel_file = 'D:/то_что_отдадут.xlsx'
+	excel_file = 'D:/#python/SchedulingClasses/data/то_что_отдадут.xlsx'
 	data = pd.read_excel(excel_file)
 	encoded_data, encoders_dict = encoder(data)
 	final_timetable = lessons_cycle(encoded_data.values, encoders_dict)

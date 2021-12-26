@@ -169,7 +169,7 @@ def data_preprocessing(lesson, timetable_data):
 
 
 def main():
-	excel_file = 'D:/то_что_отдадут_числа.xlsx'
+	excel_file = 'D:/#python/SchedulingClasses/data/то_что_отдадут_числа.xlsx'
 	data = pd.read_excel(excel_file)
 	final_timetable = lessons_cycle(data.values)
 	output(final_timetable[0])
