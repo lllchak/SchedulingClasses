@@ -12,8 +12,8 @@ CORPUS_VALUE = 2
 def windows_check(timetable_data, teacher, time_slot, day_of_week):
 	res = 0
 	for group in timetable_data.keys():
-		if (timetable_data[group][day_of_week][(time_slot % 10)+1][3] == teacher
-		    or timetable_data[group][day_of_week][(time_slot % 10)-1][3] == teacher) \
+		if timetable_data[group][day_of_week][(time_slot % 10)+1][3] == teacher \
+			or timetable_data[group][day_of_week][(time_slot % 10)-1][3] == teacher \
 			and timetable_data[group][day_of_week][(time_slot % 10)][3] != teacher:
 			res = 1
 
@@ -23,7 +23,7 @@ def windows_check(timetable_data, teacher, time_slot, day_of_week):
 # проверка на наличие переходов между корпусами в перерыве
 def corpus_check(timetable_data, room, time_slot, group, day_of_week):
 	if (timetable_data[group][day_of_week][(time_slot % 10)+1][5]) % 10 == room % 10 \
-			or (timetable_data[group][day_of_week][(time_slot % 10)-1][5]) % 10 == room % 10:
+		or (timetable_data[group][day_of_week][(time_slot % 10)-1][5]) % 10 == room % 10:
 		return 1
 	else:
 		return 0
