@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from data import sendRoomsData, sendTimetableData
+from data import sendRoomsData, sendTimetableDataChars
 
 # веса доп условий, по которым проводится подсчет качества постановок
 WINDOWS_VALUE = 1
@@ -12,9 +12,9 @@ CORPUS_VALUE = 2
 def windows_check(timetable_data, teacher, time_slot, day_of_week):
 	res = 0
 	for group in timetable_data.keys():
-		if (timetable_data[group][day_of_week][(time_slot % 10)+1][2] == teacher
-		    or timetable_data[group][day_of_week][(time_slot % 10)-1][2] == teacher)\
-			and timetable_data[group][day_of_week][(time_slot % 10)][2] != teacher:
+		if (timetable_data[group][day_of_week][(time_slot % 10)+1][3] == teacher
+		    or timetable_data[group][day_of_week][(time_slot % 10)-1][3] == teacher) \
+			and timetable_data[group][day_of_week][(time_slot % 10)][3] != teacher:
 			res = 1
 
 	return res
@@ -52,29 +52,38 @@ def quality_check(time_rooms_match, timetable_data, teacher, group):
 	# полный перебор на неделю по всем возможным парам время - аудитория
 	for day_of_week in timetable_data[group].keys():
 		for time_slot in time_rooms_match.keys():
-			for room in time_rooms_match[time_slot]:
-				# вычисление качества
-				windows_mark = WINDOWS_VALUE * windows_check(timetable_data, teacher, time_slot, day_of_week)
-				corpus_mark = CORPUS_VALUE * corpus_check(timetable_data, room, time_slot, group, day_of_week)
+			if day_of_week == time_slot // 10:
+				for room in time_rooms_match[time_slot]:
+					# вычисление качества
+					windows_mark = WINDOWS_VALUE * windows_check(timetable_data, teacher, time_slot, day_of_week)
+					corpus_mark = CORPUS_VALUE * corpus_check(timetable_data, room, time_slot, group, day_of_week)
 
-				quality = windows_mark + corpus_mark
+					quality = windows_mark + corpus_mark
 
-				# определение максимального качества
-				if quality > max_quality:
-					max_quality = quality
-					max_quality_time_room = [time_slot, room]
+					# определение максимального качества
+					if quality > max_quality:
+						max_quality = quality
+						max_quality_time_room = [time_slot, room]
 
 	return max_quality_time_room, max_quality
 
 
 # ставит занятие в расписание
-def lesson_filler(timetable_data, lesson, group, max_quality_values):
+def lesson_filler(timetable_data, lesson, max_quality_values, encoders_dict):
+	new_lesson = []
+	for index in range(len(lesson)):
+		if not isinstance(lesson[index], str):
+			new_lesson.append(inverser(encoders_dict[index], [lesson[index]-1])[0])
+	new_lesson.append(lesson[-1])
+
 	# здесь надо декодировать значения из таблицы
 	if max_quality_values:
 		# перезаписываем вместо пустых значений занятия (кроме аудитории) значения лучшего занятия
-		timetable_data[group][max_quality_values[0] // 10][max_quality_values[0] % 10][1:4] = lesson[1:4]
+		# по индексам timetable_data: первый - группа, второй - день недели, третий - конкретный номер занятия,
+		# дальше - просто срез (берем тольк группу, занятие, препода, требование)
+		timetable_data[lesson[0]][max_quality_values[0] // 10][max_quality_values[0] % 10][0:4] = new_lesson[0:4]
 		# перезаписываем вместо пустого значения аудитории значения лучшей аудитории
-		timetable_data[group][max_quality_values[0] // 10][max_quality_values[0] % 10][-1] = max_quality_values[1]
+		timetable_data[lesson[0]][max_quality_values[0] // 10][max_quality_values[0] % 10][-1] = max_quality_values[1]
 
 		return timetable_data
 
@@ -136,12 +145,13 @@ def checker(timetable_data, group):
 
 
 # функция постановки нескольких занятий из массива занятий - при возврате rooms_data вылетает по приколу
-def lessons_cycle(lessons_arr):
+def lessons_cycle(lessons_arr, encoders_dict):
 	rooms_data = sendRoomsData()
-	timetable_data = sendTimetableData()
+	timetable_data = sendTimetableDataChars()
 
 	for index, lesson in enumerate(lessons_arr):
 		teacher, group, requirement, available_time = data_preprocessing(lesson, timetable_data)
+		print('Работаем с: {}, {}, {}'.format(group, requirement, teacher))
 		if len(available_time) == 0:
 			break
 		else:
@@ -151,7 +161,7 @@ def lessons_cycle(lessons_arr):
 			print('Возможные временные слоты: {}'.format(available_time))
 			print('Максимальное качество: {}'.format(max_quality), '\n')
 			rooms_data = dict_cleaner(rooms_data, requirement, max_quality_values)
-			timetable_data = lesson_filler(timetable_data, lesson, group, max_quality_values)
+			timetable_data = lesson_filler(timetable_data, lesson, max_quality_values, encoders_dict)
 			time.sleep(0.5)
 
 	return timetable_data, rooms_data
@@ -159,12 +169,14 @@ def lessons_cycle(lessons_arr):
 
 def encoder(data):
 	encoders_dict = {}
-	for column_num, column in enumerate(data.columns):
+	for column_num, column in enumerate(data[['group', 'lesson', 'requirement']]):
 		enc = LabelEncoder()
 		data[column] = enc.fit_transform(data[column])
 		encoders_dict[column_num] = enc
 
-	return data+1, encoders_dict
+	data[['group', 'lesson', 'requirement']] = data[['group', 'lesson', 'requirement']] + 1
+
+	return data, encoders_dict
 
 
 def inverser(exact_encoder, value):
@@ -173,9 +185,9 @@ def inverser(exact_encoder, value):
 
 # обработка входных данных
 def data_preprocessing(lesson, timetable_data):
-	teacher = lesson[2]
+	teacher = lesson[3]
 	group = lesson[0]
-	requirement = lesson[3]
+	requirement = lesson[2]
 	available_time = checker(timetable_data, group)
 
 	return teacher, group, requirement, available_time
@@ -185,7 +197,7 @@ def main():
 	excel_file = 'D:/то_что_отдадут.xlsx'
 	data = pd.read_excel(excel_file)
 	encoded_data, encoders_dict = encoder(data)
-	final_timetable = lessons_cycle(encoded_data.values)
+	final_timetable = lessons_cycle(encoded_data.values, encoders_dict)
 	output(final_timetable[0])
 
 
@@ -197,10 +209,12 @@ if __name__ == '__main__':
 # ограничение на минимальное кол-во пар в дне пока непонятно как реализовать, так что отложим до лучших времен
 # преподаватель, группа, предмет - это можно сделать руками - это просто проставляется самими преподами
 # прокачать проверку корпусов (добавить еще один if) - проверить на проверенной модели
-# написать тесты
+# написать тесты к коду с готовым декодером
+# начать писать проверку переходов у преподов
 # организовать ввод через консоль
 # табличку с расписанием оформить в виде файла
 # реализовать класс обработчика данных
-# прописать декодирование в lesson_filler
+# можно еще декодировать после полного составления расписания - переводом словаря расписания в датафрейм и просто
+# по столбцам пройтись и по сути готово
 
 # реализовать равномерное распределение академ. часов по неделе
