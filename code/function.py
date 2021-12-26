@@ -5,7 +5,7 @@ FIZRA_VALUE = 1
 LECTURE_VALUE = 1
 LECTURE_PREPOD_VALUE = 1
 
-def check_fizra(timetable_data, time_slot, day_of_week):  #  в течение учебного дня было не более одной пары по физкультуре.
+def check_fizra(timetable_data, time_slot, day_of_week,group):  #  в течение учебного дня было не более одной пары по физкультуре.
     res = 0
     for group in timetable_data.keys():
         for i in range(6):
@@ -60,6 +60,6 @@ def check_lecture_day(timetable_data, room, time_slot, group, day_of_week):  # �
 
 # вставить в quality_check также
 teacher_mark = TEACHER_VALUE * check_lessons_of_teacher(timetable_data, teacher, time_slot, day_of_week,group)
-fizra_mark = FIZRA_VALUE * check_fizra(timetable_data, time_slot, day_of_week)
+fizra_mark = FIZRA_VALUE * check_fizra(timetable_data, time_slot, day_of_week,group)
 lecture_mark = LECTURE_VALUE * check_lecture_day(timetable_data, room, time_slot, group, day_of_week)
 lecture_prepod_value = LECTURE_PREPOD_VALUE * check_lecture_of_teacher(timetable_data, teacher, time_slot, day_of_week)
