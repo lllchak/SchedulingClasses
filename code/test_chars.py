@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from data import sendRoomsData, sendTimetableDataChars
+from data import send_rooms_data, send_timetable_data_chars
 
 # веса доп условий, по которым проводится подсчет качества постановок
 WINDOWS_VALUE = 1
@@ -146,8 +146,8 @@ def checker(timetable_data, group):
 
 # функция постановки нескольких занятий из массива занятий - при возврате rooms_data вылетает по приколу
 def lessons_cycle(lessons_arr, encoders_dict):
-	rooms_data = sendRoomsData()
-	timetable_data = sendTimetableDataChars()
+	rooms_data = send_rooms_data()
+	timetable_data = send_timetable_data_chars()
 
 	for index, lesson in enumerate(lessons_arr):
 		teacher, group, requirement, available_time = data_preprocessing(lesson, timetable_data)
