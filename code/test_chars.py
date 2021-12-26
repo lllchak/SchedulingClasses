@@ -73,7 +73,7 @@ def lesson_filler(timetable_data, lesson, max_quality_values, encoders_dict):
 	new_lesson = []
 	for index in range(len(lesson)):
 		if not isinstance(lesson[index], str):
-			new_lesson.append(inverser(encoders_dict[index], [lesson[index]-1])[0])
+			new_lesson.append(decoder(encoders_dict[index], [lesson[index]-1])[0])
 	new_lesson.append(lesson[-1])
 
 	# здесь надо декодировать значения из таблицы
@@ -179,7 +179,7 @@ def encoder(data):
 	return data, encoders_dict
 
 
-def inverser(exact_encoder, value):
+def decoder(exact_encoder, value):
 	return exact_encoder.inverse_transform(value)
 
 
