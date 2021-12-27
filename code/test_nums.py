@@ -3,8 +3,8 @@ import pandas as pd
 from data import send_rooms_data, send_timetable_data_nums
 
 # веса доп условий, по которым проводится подсчет качества постановок
-WINDOWS_VALUE = 1
-CORPUS_VALUE = 2
+WINDOWS_VALUE = 2
+CORPUS_VALUE = 1
 
 
 # проверка окон у преподов
@@ -20,10 +20,15 @@ def windows_check(timetable_data, teacher, time_slot, day_of_week):
 
 
 # проверка на наличие переходов между корпусами в перерыве
-def corpus_check(timetable_data, room, time_slot, group, day_of_week):
-	if (timetable_data[group][day_of_week][(time_slot % 10)+1][5]) % 10 == room % 10 \
-			or (timetable_data[group][day_of_week][(time_slot % 10)-1][5]) % 10 == room % 10:
+def corpus_check_groups(timetable_data, room, time_slot, group, day_of_week):
+	if (timetable_data[group][day_of_week][(time_slot % 10) + 1][5]) % 10 == room % 10 \
+			and (timetable_data[group][day_of_week][(time_slot % 10) - 1][5]) % 10 == room % 10:
 		return 1
+
+	elif (timetable_data[group][day_of_week][(time_slot % 10)+1][5]) % 10 == room % 10 \
+			or (timetable_data[group][day_of_week][(time_slot % 10)-1][5]) % 10 == room % 10:
+		return 0.5
+
 	else:
 		return 0
 
@@ -55,7 +60,7 @@ def quality_check(time_rooms_match, timetable_data, teacher, group):
 				for room in time_rooms_match[time_slot]:
 					# вычисление качества
 					windows_mark = WINDOWS_VALUE * windows_check(timetable_data, teacher, time_slot, day_of_week)
-					corpus_mark = CORPUS_VALUE * corpus_check(timetable_data, room, time_slot, group, day_of_week)
+					corpus_mark = CORPUS_VALUE * corpus_check_groups(timetable_data, room, time_slot, group, day_of_week)
 
 					quality = windows_mark + corpus_mark
 
