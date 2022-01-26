@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from data import send_rooms_data, send_timetable_data_chars
+from data import send_rooms_data, send_timetable_data_chars, send_valid_data
 
 # веса доп условий, по которым проводится подсчет качества постановок
 WINDOWS_VALUE = 2
@@ -200,9 +200,29 @@ def data_preprocessing(lesson, timetable_data):
 	return teacher, group, requirement, available_time
 
 
-def main():
+def data_validation():
 	excel_file = 'D:/#python/SchedulingClasses/data/то_что_отдадут.xlsx'
-	data = pd.read_excel(excel_file)
+	valid_data = send_valid_data()
+	# table - это табличка
+	table = pd.read_excel(excel_file)
+
+	not_valid_data = []
+	for column in table.columns:
+		for index, el in enumerate(table[column]):
+			if el not in valid_data[column] or not el:
+				not_valid_data.append('Ошибка в строке {}, неправильное значение: {}'.format(index+2, el))
+			else:
+				pass
+
+	if len(not_valid_data) > 0:
+		for el in not_valid_data:
+			print(el)
+		return not_valid_data
+	else:
+		return table
+
+
+def main():
 	print(data.values)
 	encoded_data, encoders_dict = encoder(data)
 	final_timetable = lessons_cycle(encoded_data.values, encoders_dict)
@@ -211,4 +231,6 @@ def main():
 
 if __name__ == '__main__':
 	# надо сделать, чтобы этот файл как то подгружал пользователь
-	main()
+	data = data_validation()
+	if not isinstance(data, list):
+		main()
