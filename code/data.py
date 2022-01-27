@@ -21,7 +21,7 @@ timetable_data_chars = {
 			    [1, 0, 0, '', 11, 0],
 			    [1, 0, 0, '', 12, 0],
 			    [1, 2, 2, 'Зверева А. И.', 13, 418],
-			    [1, 3, 3, 'Нефедов Ю. В.', 14, 213],
+			    [1, 3, 3, 'Нефёдов Ю. В.', 14, 213],
 			    [1, 0, 0, '', 15, 0],
 			    [1, 0, 0, '', 16, 0],
 			    [0, 0, 0, '', 0, 0]],
@@ -53,7 +53,7 @@ timetable_data_chars = {
 			    [2, 0, 0, '', 23, 0],
 			    [2, 0, 0, '', 24, 0],
 			    [2, 0, 0, '', 25, 0],
-			    [2, 8, 3, 'Нефедов Ю. В.', 26, 114],
+			    [2, 8, 3, 'Нефёдов Ю. В.', 26, 114],
 			    [0, 0, 0, '', 0, 0]]
 		}
 	},
@@ -62,7 +62,7 @@ timetable_data_chars = {
 		# 1-АЯ ГРУППА
 		1: {
 			1: [[0, 0, 0, '', 0, 0],
-			    [1, 0, 0, 'Нефедов Ю. В.', 11, 213],
+			    [1, 0, 0, 'Нефёдов Ю. В.', 11, 213],
 			    [1, 0, 0, '', 12, 0],
 			    [1, 2, 2, '', 13, 0],
 			    [1, 3, 3, '', 14, 0],
@@ -85,16 +85,16 @@ timetable_data_chars = {
 			1: [[0, 0, 0, '', 0, 0],
 			    [2, 0, 0, '', 11, 0],
 			    [2, 0, 0, '', 12, 0],
-			    [2, 5, 2, '', 13, 0],
-			    [2, 5, 1, '', 14, 0],
-			    [2, 0, 0, 'Зверева А. И.', 15, 352],
-			    [2, 0, 0, 'Маслякова И. Н.', 16, 712],
+			    [2, 5, 2, 'Маслякова И. Н.', 13, 632],
+			    [2, 5, 1, 'Зверева А. И.', 14, 893],
+			    [2, 0, 0, '', 15, 0],
+			    [2, 0, 0, '', 16, 0],
 			    [0, 0, 0, '', 0, 0]],
 			# вторник 2-ая группа
 			2: [[0, 0, 0, '', 0, 0],
 			    [2, 0, 0, '', 21, 0],
-			    [2, 0, 0, 'Нефедов Ю. В.', 22, 213],
-			    [2, 0, 0, 'Нефедов Ю. В.', 23, 213],
+			    [2, 0, 0, 'Нефёдов Ю. В.', 22, 213],
+			    [2, 0, 0, 'Нефёдов Ю. В.', 23, 213],
 			    [2, 0, 0, '', 24, 0],
 			    [2, 0, 0, '', 25, 0],
 			    [2, 8, 3, '', 26, 0],
@@ -147,27 +147,6 @@ timetable_data_nums = {
 	}
 }
 
-rooms_data = {
-	1: {},
-	2: {},
-	3: {},
-	4: {}
-}
-
-all_time = [11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 41, 42,
-            43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 61, 62, 63, 64, 65, 66]
-
-for requirement in range(1, len(rooms_data) + 1):
-	for time_slot in all_time:
-		if requirement == 1:
-			rooms_data[requirement][time_slot] = [111, 122, 133, 144]
-		elif requirement == 2:
-			rooms_data[requirement][time_slot] = [211, 222, 233, 244]
-		elif requirement == 3:
-			rooms_data[requirement][time_slot] = [311, 322, 333, 344]
-		elif requirement == 4:
-			rooms_data[requirement][time_slot] = [411, 422, 433, 444]
-
 
 def send_timetable_data_chars():
 	return timetable_data_chars
@@ -177,7 +156,28 @@ def send_timetable_data_nums():
 	return timetable_data_nums
 
 
-def send_rooms_data():
+def create_and_send_rooms_data():
+	rooms_data = {
+		1: {},
+		2: {},
+		3: {},
+		4: {}
+	}
+
+	all_time = [11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 41, 42,
+	            43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 61, 62, 63, 64, 65, 66]
+
+	for requirement in range(1, len(rooms_data) + 1):
+		for time_slot in all_time:
+			if requirement == 1:
+				rooms_data[requirement][time_slot] = [111, 122, 133, 144]
+			elif requirement == 2:
+				rooms_data[requirement][time_slot] = [211, 222, 233, 244]
+			elif requirement == 3:
+				rooms_data[requirement][time_slot] = [311, 322, 333, 344]
+			elif requirement == 4:
+				rooms_data[requirement][time_slot] = [411, 422, 433, 444]
+
 	return rooms_data
 
 
