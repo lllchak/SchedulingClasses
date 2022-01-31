@@ -42,7 +42,7 @@ def less_than_5_lectures_and_seminars1(timetable_data, week, day_of_week, teache
 		return (5-count) * 0.2
 
 
-def less_than_3_lectures_together(timetable_data: dict, week: int, day_of_week: int, teacher: str) -> int or float:
+def less_than_3_lectures_together(timetable_dat, week, day_of_week, teacher):
 	'''
 	Проверяет, чтобы в расписании учителя было не больше 3-ёх лекций подряд
 	'''
