@@ -1,5 +1,4 @@
 *.pyc
-/additional
 /.idea/codeStyles
 /code/test.py
 /tests
